@@ -1,24 +1,26 @@
 <resources>
     <string name="app_name">BusTracker-App</string>
+    <string name="Search">Αναζήτηση</string>
+    <string name="Delete">Καθαρισμός</string>
     <string-array name="bus_lines">
-        <item>022,NEA KYPSELI - MARASLEIOS</item>
-        <item>024,AG. ANARGYROI - ST. KATO PATHSIA</item>
-        <item>025,IPPOKRATOUS - PROFITI DANIIL</item>
-        <item>026,IPPOKRATOUS - VOTANIKOS</item>
-        <item>027,IPPOKRATOUS - ORFEOS</item>
-        <item>032,GOUDI-MARASLIOS</item>
-        <item>035,ANO KYPSELI - PETRALONA - TAVROS</item>
-        <item>804,036,KATECHAKI - KYPSELI</item>
-        <item>1219,036,KATECHAKI - KYPSELI</item>
+        <item>022 ,NEA KYPSELI - MARASLEIOS</item>
+        <item>024 ,AG. ANARGYROI - ST. KATO PATHSIA</item>
+        <item>025 ,IPPOKRATOUS - PROFITI DANIIL</item>
+        <item>026 ,IPPOKRATOUS - VOTANIKOS</item>
+        <item>027 ,IPPOKRATOUS - ORFEOS</item>
+        <item>032 ,GOUDI-MARASLIOS</item>
+        <item>035 ,ANO KYPSELI - PETRALONA - TAVROS</item>
+        <item>804 ,036,KATECHAKI - KYPSELI</item>
+        <item>1219 ,036,KATECHAKI - KYPSELI</item>
         <item>1220,036,KATECHAKI - KYPSELI</item>
-        <item>040,PEIRAIAS - SINTAGMA</item>
-        <item>046,MOUSEIO - ELLINOROSON</item>
-        <item>049,PEIRAIAS - OMONOIA</item>
-        <item>051,OMONOIA - ST. YPERAST. LEOF. KIFISOU</item>
-        <item>054,PERISSOS - AKADIMIA METAMORFOSI</item>
-        <item>057,OMONOIA - LOFOS SKOUZE</item>
-        <item>060,MOUSEIO - AKADIMIA - LYKAVITTOS</item>
-        <item>1,PLATEIA ATTIKIS - TZITZIFIES - MOSCHATO</item>
-        <item>10,TZITZIFIES - XALANDRI</item>
+        <item>040 ,PEIRAIAS - SINTAGMA</item>
+        <item>046 ,MOUSEIO - ELLINOROSON</item>
+        <item>049 ,PEIRAIAS - OMONOIA</item>
+        <item>051 ,OMONOIA - ST. YPERAST. LEOF. KIFISOU</item>
+        <item>054 ,PERISSOS - AKADIMIA METAMORFOSI</item>
+        <item>057 ,OMONOIA - LOFOS SKOUZE</item>
+        <item>060 ,MOUSEIO - AKADIMIA - LYKAVITTOS</item>
+        <item>1 ,PLATEIA ATTIKIS - TZITZIFIES - MOSCHATO</item>
+        <item>10 ,TZITZIFIES - XALANDRI</item>
     </string-array>
 </resources>
