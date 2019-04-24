@@ -3,17 +3,17 @@ package com.example.bustracker_app;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.github.clans.fab.FloatingActionButton;
@@ -22,12 +22,12 @@ import com.mapbox.geojson.Feature;
 import com.mapbox.geojson.FeatureCollection;
 import com.mapbox.geojson.Point;
 import com.mapbox.mapboxsdk.Mapbox;
-import com.mapbox.mapboxsdk.annotations.Icon;
-import com.mapbox.mapboxsdk.annotations.IconFactory;
-import com.mapbox.mapboxsdk.annotations.MarkerOptions;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
-import com.mapbox.mapboxsdk.maps.*;
+import com.mapbox.mapboxsdk.maps.MapView;
+import com.mapbox.mapboxsdk.maps.MapboxMap;
+import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
+import com.mapbox.mapboxsdk.maps.Style;
 import com.mapbox.mapboxsdk.style.layers.SymbolLayer;
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
 
@@ -46,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
     private String[] busLines;
 
 
+    public static TextView status;
     private MapboxMap map;
     private GeoJsonSource demo;
 
@@ -56,12 +57,12 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mapView = findViewById(R.id.mapView);
         mapView.onCreate(savedInstanceState);
+        status = findViewById(R.id.status);
         floatingActionMenu = findViewById(R.id.floatingActionMenu);
         floatingActionButtonSearch = findViewById(R.id.floatingActionSearch);
         floatingActionButtonDelete = findViewById(R.id.floatingActionDelete);
 
         busLines = getResources().getStringArray(R.array.bus_lines);
-
 
 
         floatingActionButtonSearch.setOnClickListener(new View.OnClickListener() {
@@ -72,12 +73,15 @@ public class MainActivity extends AppCompatActivity {
                 mBuilder.setItems(busLines, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        Toast.makeText(MainActivity.this, ""+which,Toast.LENGTH_LONG).show();
+                        Subscriber sub1 = new Subscriber(new Topic(busLines[which].substring(0, busLines[which].indexOf(",") - 1)), MainActivity.this);
+                        Toast.makeText(MainActivity.this, sub1.getPreferedTopic().getBusLine(), Toast.LENGTH_LONG).show();
+                        Thread t1 = new Thread(sub1);
+                        t1.start();
                     }
                 });
 
                 mBuilder.setCancelable(false);
-                mBuilder.setNegativeButton("Άκυρο",null);
+                mBuilder.setNegativeButton("Άκυρο", null);
                 mBuilder.show();
 
             }
@@ -87,14 +91,14 @@ public class MainActivity extends AppCompatActivity {
         mapView.getMapAsync(new OnMapReadyCallback() {
             @Override
             public void onMapReady(@NonNull final MapboxMap mapboxMap) {
-                map=mapboxMap;
+                map = mapboxMap;
                 mapboxMap.setStyle(Style.MAPBOX_STREETS, new Style.OnStyleLoaded() {
                     @Override
                     public void onStyleLoaded(@NonNull Style style) {
 
 // Map is set up and the style has loaded. Now you can add data or make other map adjustments
                         initBusLayer(style);
-                        LatLng position = new LatLng(37.983624,23.732667);
+                        LatLng position = new LatLng(37.983624, 23.732667);
                         updateMarkerPosition(position);
 
 
@@ -106,7 +110,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void initBusLayer(@NonNull Style style) {
 
-        style.addImage("space-station-icon-id", getBitmapFromVectorDrawable(this,R.drawable.ic_bus));
+        style.addImage("space-station-icon-id", getBitmapFromVectorDrawable(this, R.drawable.ic_bus));
 
         style.addSource(new GeoJsonSource("source-id"));
 
