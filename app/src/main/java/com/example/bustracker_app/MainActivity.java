@@ -57,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mapView = findViewById(R.id.mapView);
         mapView.onCreate(savedInstanceState);
-        status = findViewById(R.id.status);
+        //status = findViewById(R.id.status);
         floatingActionMenu = findViewById(R.id.floatingActionMenu);
         floatingActionButtonSearch = findViewById(R.id.floatingActionSearch);
         floatingActionButtonDelete = findViewById(R.id.floatingActionDelete);
