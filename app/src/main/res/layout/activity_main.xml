@@ -13,7 +13,23 @@
         android:layout_height="match_parent"
         mapbox:mapbox_cameraTargetLat="37.983624"
         mapbox:mapbox_cameraTargetLng="23.732667"
-        mapbox:mapbox_cameraZoom="11" />
+        mapbox:mapbox_cameraZoom="11">
+
+    </com.mapbox.mapboxsdk.maps.MapView>
+
+
+    <TextView
+        android:id="@+id/status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:layout_marginStart="5dp"
+        android:layout_marginTop="8dp"
+        android:text="No Connection"
+        android:textColor="@color/red_btn_bg_color"
+
+        app:layout_constraintStart_toStartOf="@+id/mapView"
+        app:layout_constraintTop_toTopOf="@+id/mapView" />
 
     <com.github.clans.fab.FloatingActionMenu
         android:id="@+id/floatingActionMenu"
@@ -54,7 +70,6 @@
             app:fab_colorNormal="@color/colorAccent" />
 
     </com.github.clans.fab.FloatingActionMenu>
-
 
 
 </android.support.constraint.ConstraintLayout>

@@ -16,9 +16,10 @@ public class Broker extends Node implements Runnable, Serializable {
     private int brokerID;
     private static String numberOfBrokers;
     private boolean brokerIsRunning = false; //flag that indicates if a broker is running or not
-    private HashMap<Integer, ClientHandler> registeredPublishers = new HashMap<>();
-    private HashMap<Integer, ClientHandler> registeredSubscribers = new HashMap<>();
+    private HashMap<Integer, Broker.ClientHandler> registeredPublishers = new HashMap<>();
+    private HashMap<Integer, Broker.ClientHandler> registeredSubscribers = new HashMap<>();
     private ArrayList<Topic> ResponsibilityLines = new ArrayList<>();
+    public static final long serialVersionUID = 22149313046710534L;
 
    /* public static void main(String args[]) {
 
@@ -97,7 +98,7 @@ public class Broker extends Node implements Runnable, Serializable {
 
                 System.out.println("Creating a new handler for a client...");
 
-                new Thread(new ClientHandler(clientSocket, this, in, out)).start();
+                new Thread(new Broker.ClientHandler(clientSocket, this, in, out)).start();
 
             }
         } catch (IOException ioException) {
@@ -290,11 +291,11 @@ public class Broker extends Node implements Runnable, Serializable {
         this.IPv4 = IPv4;
     }
 
-    public HashMap<Integer, ClientHandler> getRegisteredPublishers() {
+    public HashMap<Integer, Broker.ClientHandler> getRegisteredPublishers() {
         return registeredPublishers;
     }
 
-    public HashMap<Integer, ClientHandler> getRegisteredSubscribers() {
+    public HashMap<Integer, Broker.ClientHandler> getRegisteredSubscribers() {
         return registeredSubscribers;
     }
 
@@ -309,5 +310,3 @@ public class Broker extends Node implements Runnable, Serializable {
     //End of Getters Setters
 
 }
-
-

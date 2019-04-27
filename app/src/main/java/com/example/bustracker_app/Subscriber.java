@@ -1,8 +1,8 @@
 package com.example.bustracker_app;
 
 import android.content.Context;
+import android.os.Message;
 import android.util.Log;
-
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -10,7 +10,6 @@ import java.io.Serializable;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.HashMap;
-
 import cn.pedant.SweetAlert.SweetAlertDialog;
 
 public class Subscriber implements Runnable, Serializable {
@@ -20,6 +19,7 @@ public class Subscriber implements Runnable, Serializable {
     private boolean isRunning = false;
     //Context to handle android components and others
     private Context context;
+    public static final long serialVersionUID = 22149313046710534L;
 
     /*public static void main(String args[]){
         //Subscriber subscriber1=new Subscriber(new Topic("022"));
@@ -30,9 +30,8 @@ public class Subscriber implements Runnable, Serializable {
         t2.start();
     }*/
 
-    public Subscriber(Topic topic, Context context) {
+    public Subscriber(Topic topic) {
         this.preferedTopic = topic;
-        this.context = context;
     }
 
     //Connects to the appropriate Broker and then starts listening for updates
@@ -45,18 +44,19 @@ public class Subscriber implements Runnable, Serializable {
 
         try {
             requestSocket = new Socket(broker.getIPv4(), broker.getPort());
-            new SweetAlertDialog(context, SweetAlertDialog.SUCCESS_TYPE)
-                    .setTitleText("Επιτυχής Σύνδεση!")
-                    .setContentText("Έγινε σύνδεση στον Broker" + broker.getBrokerID() + ": " + broker.getIPv4() + ":" + broker.getPort() + "...")
-                    .setConfirmText("Οκ")
-                    .show();
+            Message msg = new Message();
+            msg.arg1=1;
+            String[] text = new String[2];
+            text[0]="Επιτυχής Σύνδεση!";
+            text[1]="Έγινε σύνδεση στον Broker" + broker.getBrokerID() + ": " + broker.getIPv4() + ":" + broker.getPort();
+            msg.obj= text;
+            MainActivity.mHandler.sendMessage(msg);
             //System.out.println("Connection established! --> Listening for updates...");
-            MainActivity.status.setText("Connected");
-            MainActivity.status.setTextColor((-500145));
+
             out = new ObjectOutputStream(requestSocket.getOutputStream());
             in = new ObjectInputStream(requestSocket.getInputStream());
 
-            out.writeObject(this);
+            out.writeObject(Subscriber.this);
             out.flush();
 
         } catch (UnknownHostException unknownHost) {
@@ -79,8 +79,14 @@ public class Subscriber implements Runnable, Serializable {
         try {
             in.close();
             out.close();
-            //System.out.println("Disconnected");
             requestSocket.close();
+            Message msg = new Message();
+            msg.arg1=1;
+            String[] text = new String[2];
+            text[0]="Αποσύνδεση";
+            text[1]="Έγινε αποσύνδεση απο τον Broker" + broker.getBrokerID() + ": " + broker.getIPv4() + ":" + broker.getPort();
+            msg.obj= text;
+            MainActivity.mHandler.sendMessage(msg);
         } catch (IOException ioException) {
             ioException.printStackTrace();
         }
@@ -92,6 +98,9 @@ public class Subscriber implements Runnable, Serializable {
 
     }
 
+    public void disconnect(){
+        isRunning=false;
+    }
 
     //Connects to MasterServer in order to receive a list of all running brokers so to find the appropriate one
     public void connectToMasterServer(int port, String message) {
@@ -99,7 +108,7 @@ public class Subscriber implements Runnable, Serializable {
         ObjectOutputStream out = null;
         ObjectInputStream in = null;
         try {
-            requestSocket = new Socket("192.168.1.85", port);
+            requestSocket = new Socket("192.168.1.4", port);
 
             out = new ObjectOutputStream(requestSocket.getOutputStream());
             in = new ObjectInputStream(requestSocket.getInputStream());
@@ -110,7 +119,11 @@ public class Subscriber implements Runnable, Serializable {
 
             try {
                 brokers = (HashMap<Integer, Broker>) in.readObject();
-                wait(5000);
+                //String obj = (String) in.readObject();
+                //Message msg = new Message();
+                //msg.arg1=2;
+                //msg.obj= obj;
+                //MainActivity.mHandler.sendMessage(msg);
             } catch (Exception e) {
                 Log.d("NONONONONO", brokers.size() + "");
                 e.printStackTrace();
@@ -125,10 +138,15 @@ public class Subscriber implements Runnable, Serializable {
             ioException.printStackTrace();
         } finally {
             try {
-                in.close();
-                out.close();
+                if (in!=null && out!=null){
+                    in.close();
+                    out.close();
+                }
+
                 //System.out.println("Disconnected");
-                requestSocket.close();
+                if (requestSocket!=null){
+                    requestSocket.close();
+                }
             } catch (IOException ioException) {
                 ioException.printStackTrace();
             }
@@ -155,6 +173,11 @@ public class Subscriber implements Runnable, Serializable {
         connectToMasterServer(8085, "connect");
         if (brokers.size() == 0) {
             Log.d("msg", "No brokers available");
+            Message msg = new Message();
+            msg.arg1=2;
+            msg.obj="Δεν υπάρχουν διαθέσιμοι Brokers";
+            MainActivity.mHandler.sendMessage(msg);
+
         } else {
             Broker myBroker = findMyBroker();
             if (myBroker == null) {
@@ -169,7 +192,7 @@ public class Subscriber implements Runnable, Serializable {
                     for (Topic topic : brokers.get(brokerid).getResponsibilityLines()) {
                         System.out.print(topic.getBusLine() + " , ");
                     }
-                    System.out.println("");
+                    System.out.println();
                 }
                 register(findMyBroker(), preferedTopic);
             }

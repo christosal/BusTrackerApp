@@ -7,6 +7,9 @@ import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
@@ -31,21 +34,26 @@ import com.mapbox.mapboxsdk.maps.Style;
 import com.mapbox.mapboxsdk.style.layers.SymbolLayer;
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
 
+import java.io.Serializable;
+
+import cn.pedant.SweetAlert.SweetAlertDialog;
+
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconAllowOverlap;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconIgnorePlacement;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconImage;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconSize;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements Serializable {
 
     private MapView mapView;
     private FloatingActionMenu floatingActionMenu;
     private FloatingActionButton floatingActionButtonSearch;
     private FloatingActionButton floatingActionButtonDelete;
+    Subscriber sub1;
 
     private String[] busLines;
 
-
+    public static Handler mHandler;
     public static TextView status;
     private MapboxMap map;
     private GeoJsonSource demo;
@@ -57,12 +65,34 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mapView = findViewById(R.id.mapView);
         mapView.onCreate(savedInstanceState);
-        //status = findViewById(R.id.status);
+        status = findViewById(R.id.status);
         floatingActionMenu = findViewById(R.id.floatingActionMenu);
         floatingActionButtonSearch = findViewById(R.id.floatingActionSearch);
         floatingActionButtonDelete = findViewById(R.id.floatingActionDelete);
 
         busLines = getResources().getStringArray(R.array.bus_lines);
+
+        mHandler = new Handler(Looper.getMainLooper()){
+            @Override
+            public void handleMessage(Message msg) {
+                super.handleMessage(msg);
+                if (msg.arg1==2){
+                    new SweetAlertDialog(MainActivity.this,SweetAlertDialog.ERROR_TYPE)
+                            .setTitleText((String) msg.obj)
+                            .setConfirmText("OK")
+                            .show();
+                }else if(msg.arg1==1){
+                    String[] text = (String[]) msg.obj;
+                    new SweetAlertDialog(MainActivity.this,SweetAlertDialog.SUCCESS_TYPE)
+                            .setTitleText( text[0])
+                            .setContentText(text[1])
+                            .setConfirmText("OK")
+                            .show();
+                    status.setText("Connected");
+                    status.setTextColor(getResources().getColor(R.color.main_green_color));
+                }
+            }
+        };
 
 
         floatingActionButtonSearch.setOnClickListener(new View.OnClickListener() {
@@ -73,8 +103,8 @@ public class MainActivity extends AppCompatActivity {
                 mBuilder.setItems(busLines, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        Subscriber sub1 = new Subscriber(new Topic(busLines[which].substring(0, busLines[which].indexOf(",") - 1)), MainActivity.this);
-                        Toast.makeText(MainActivity.this, sub1.getPreferedTopic().getBusLine(), Toast.LENGTH_LONG).show();
+                        sub1 = new Subscriber(new Topic(busLines[which].substring(0, busLines[which].indexOf(",") - 1)));
+                        //Toast.makeText(MainActivity.this, sub1.getPreferedTopic().getBusLine(), Toast.LENGTH_LONG).show();
                         Thread t1 = new Thread(sub1);
                         t1.start();
                     }
@@ -84,6 +114,15 @@ public class MainActivity extends AppCompatActivity {
                 mBuilder.setNegativeButton("Άκυρο", null);
                 mBuilder.show();
 
+            }
+        });
+
+        floatingActionButtonDelete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sub1.disconnect();
+                status.setTextColor(getResources().getColor(R.color.red_btn_bg_color));
+                status.setText("No Connection");
             }
         });
 
