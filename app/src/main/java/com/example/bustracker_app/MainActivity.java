@@ -15,6 +15,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -35,6 +36,8 @@ import com.mapbox.mapboxsdk.style.layers.SymbolLayer;
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 import cn.pedant.SweetAlert.SweetAlertDialog;
 
@@ -50,9 +53,8 @@ public class MainActivity extends AppCompatActivity implements Serializable {
     private FloatingActionButton floatingActionButtonSearch;
     private FloatingActionButton floatingActionButtonDelete;
     Subscriber sub1;
-
     private String[] busLines;
-
+    private List<String> vechicleIDs = new ArrayList<>(); //Stores all diferent vechicles from the same line in order to show them in map
     public static Handler mHandler;
     public static TextView status;
     private MapboxMap map;
@@ -72,6 +74,16 @@ public class MainActivity extends AppCompatActivity implements Serializable {
 
         busLines = getResources().getStringArray(R.array.bus_lines);
 
+
+
+        /*
+        *  A Handler for handling communication between the Subscriber thread
+        *  and the UI Thread.
+        *  A subscriber can send messages with unique codes in order the UI Thread
+        *  to identify what action it has to do.
+        *  Codes are: 1 , 2 , 3 , 4 . They are explained below
+        *
+        *  */
         mHandler = new Handler(Looper.getMainLooper()){
             @Override
             public void handleMessage(Message msg) {
@@ -81,7 +93,7 @@ public class MainActivity extends AppCompatActivity implements Serializable {
                             .setTitleText((String) msg.obj)
                             .setConfirmText("OK")
                             .show();
-                }else if(msg.arg1==1){
+                }else if(msg.arg1==1){ // Conected to a Broker info pop up message
                     String[] text = (String[]) msg.obj;
                     new SweetAlertDialog(MainActivity.this,SweetAlertDialog.SUCCESS_TYPE)
                             .setTitleText( text[0])
@@ -90,6 +102,26 @@ public class MainActivity extends AppCompatActivity implements Serializable {
                             .show();
                     status.setText("Connected");
                     status.setTextColor(getResources().getColor(R.color.main_green_color));
+                }else if(msg.arg1==4){ // Disconnected from broker due to button click on UI
+                    String[] text = (String[]) msg.obj;
+                    new SweetAlertDialog(MainActivity.this,SweetAlertDialog.SUCCESS_TYPE)
+                            .setTitleText( text[0])
+                            .setContentText(text[1])
+                            .setConfirmText("OK")
+                            .show();
+                }else if (msg.arg1==3){ // Info of Coords
+                    Object[] response = (Object[]) msg.obj;
+                    String text = (String) response[0];
+                    Value value = (Value) response[1];
+
+                    //Toast.makeText(MainActivity.this, text, Toast.LENGTH_SHORT).show();
+                    //Log.w("COORDSL",text);
+                    if (!vechicleIDs.contains(value.getBus().getVechicleId())){
+                        vechicleIDs.add(value.getBus().getVechicleId());
+                        initBusLayer(map.getStyle(),value.getBus().getVechicleId());
+                    }
+                    LatLng position = new LatLng(value.getLatitude(), value.getLongitude());
+                    updateMarkerPosition(position,value.getBus().getVechicleId());
                 }
             }
         };
@@ -113,7 +145,7 @@ public class MainActivity extends AppCompatActivity implements Serializable {
                 mBuilder.setCancelable(false);
                 mBuilder.setNegativeButton("Άκυρο", null);
                 mBuilder.show();
-
+                floatingActionMenu.close(true);
             }
         });
 
@@ -136,9 +168,9 @@ public class MainActivity extends AppCompatActivity implements Serializable {
                     public void onStyleLoaded(@NonNull Style style) {
 
 // Map is set up and the style has loaded. Now you can add data or make other map adjustments
-                        initBusLayer(style);
-                        LatLng position = new LatLng(37.983624, 23.732667);
-                        updateMarkerPosition(position);
+                        //initBusLayer(style);
+                        //LatLng position = new LatLng(37.983624, 23.732667);
+                        //updateMarkerPosition(position);
 
 
                     }
@@ -147,13 +179,13 @@ public class MainActivity extends AppCompatActivity implements Serializable {
         });
     }
 
-    private void initBusLayer(@NonNull Style style) {
+    private void initBusLayer(@NonNull Style style,String vechicleID) {
 
         style.addImage("space-station-icon-id", getBitmapFromVectorDrawable(this, R.drawable.ic_bus));
 
-        style.addSource(new GeoJsonSource("source-id"));
+        style.addSource(new GeoJsonSource(vechicleID));
 
-        style.addLayer(new SymbolLayer("layer-id", "source-id").withProperties(
+        style.addLayer(new SymbolLayer(vechicleID, vechicleID).withProperties(
                 iconImage("space-station-icon-id"),
                 iconIgnorePlacement(true),
                 iconAllowOverlap(true),
@@ -162,12 +194,12 @@ public class MainActivity extends AppCompatActivity implements Serializable {
     }
 
 
-    private void updateMarkerPosition(LatLng position) {
+    private void updateMarkerPosition(LatLng position,String vechicleID) {
 // This method is were we update the marker position once we have new coordinates. First we
 // check if this is the first time we are executing this handler, the best way to do this is
 // check if marker is null;
         if (map.getStyle() != null) {
-            demo = map.getStyle().getSourceAs("source-id");
+            demo = map.getStyle().getSourceAs(vechicleID);
             if (demo != null) {
                 demo.setGeoJson(FeatureCollection.fromFeature(
                         Feature.fromGeometry(Point.fromLngLat(position.getLongitude(), position.getLatitude()))
@@ -177,7 +209,8 @@ public class MainActivity extends AppCompatActivity implements Serializable {
 
 // Lastly, animate the camera to the new position so the user
 // wont have to search for the marker and then return.
-        map.animateCamera(CameraUpdateFactory.newLatLng(position));
+       // map.animateCamera(CameraUpdateFactory.newLatLng(position));
+        map.moveCamera(CameraUpdateFactory.newLatLngZoom(position,13));
     }
 
     @Override

@@ -22,12 +22,14 @@
         android:id="@+id/status"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textStyle="bold"
         android:layout_marginStart="5dp"
         android:layout_marginTop="8dp"
+        android:background="#4B4A4A"
+        android:padding="2dp"
         android:text="No Connection"
         android:textColor="@color/red_btn_bg_color"
 
+        android:textStyle="bold"
         app:layout_constraintStart_toStartOf="@+id/mapView"
         app:layout_constraintTop_toTopOf="@+id/mapView" />
 

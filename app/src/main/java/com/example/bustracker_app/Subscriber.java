@@ -44,6 +44,8 @@ public class Subscriber implements Runnable, Serializable {
 
         try {
             requestSocket = new Socket(broker.getIPv4(), broker.getPort());
+
+            //--Sending Message to UI Thread--//
             Message msg = new Message();
             msg.arg1=1;
             String[] text = new String[2];
@@ -51,6 +53,7 @@ public class Subscriber implements Runnable, Serializable {
             text[1]="Έγινε σύνδεση στον Broker" + broker.getBrokerID() + ": " + broker.getIPv4() + ":" + broker.getPort();
             msg.obj= text;
             MainActivity.mHandler.sendMessage(msg);
+            // --- End of Sending message to UI Thread--- //
             //System.out.println("Connection established! --> Listening for updates...");
 
             out = new ObjectOutputStream(requestSocket.getOutputStream());
@@ -68,9 +71,22 @@ public class Subscriber implements Runnable, Serializable {
             try {
                 Object recievedValue = in.readObject();
                 if (recievedValue instanceof Value) {
-                    System.out.println("Recieved from Broker" + broker.getBrokerID() + ": " + broker.getIPv4() + ":" + broker.getPort() + "---> Lat:" + ((Value) recievedValue).getLatitude() + " , Long:" + ((Value) recievedValue).getLongitude());
+                    //System.out.println("Recieved from Broker" + broker.getBrokerID() + ": " + broker.getIPv4() + ":" + broker.getPort() + "---> Lat:" + ((Value) recievedValue).getLatitude() + " , Long:" + ((Value) recievedValue).getLongitude());
+                    Message msg = new Message();
+                    msg.arg1=3;
+                    Object[] responseObject = new Object[2];
+                    String text;
+                    text = ("Received from Broker" + broker.getBrokerID() + ": " + broker.getIPv4() + ":" + broker.getPort() + "---> Lat:" + ((Value) recievedValue).getLatitude() + " , Long:" + ((Value) recievedValue).getLongitude());
+                    responseObject[0]=text;
+                    responseObject[1]=recievedValue;
+                    msg.obj= responseObject;
+                    MainActivity.mHandler.sendMessage(msg);
                 } else if (recievedValue.equals("Stopped")) {
-                    System.out.println("Recieved from Broker" + broker.getBrokerID() + ": " + broker.getIPv4() + ":" + broker.getPort() + "---> Transmission stopped working ");
+                    Message msg = new Message();
+                    msg.arg1=2;
+                    msg.obj="Η μετάδοση σταμάτησε";
+                    MainActivity.mHandler.sendMessage(msg);
+                    //System.out.println("Received from Broker" + broker.getBrokerID() + ": " + broker.getIPv4() + ":" + broker.getPort() + "---> Transmission stopped working ");
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -81,7 +97,7 @@ public class Subscriber implements Runnable, Serializable {
             out.close();
             requestSocket.close();
             Message msg = new Message();
-            msg.arg1=1;
+            msg.arg1=4;
             String[] text = new String[2];
             text[0]="Αποσύνδεση";
             text[1]="Έγινε αποσύνδεση απο τον Broker" + broker.getBrokerID() + ": " + broker.getIPv4() + ":" + broker.getPort();
@@ -108,7 +124,7 @@ public class Subscriber implements Runnable, Serializable {
         ObjectOutputStream out = null;
         ObjectInputStream in = null;
         try {
-            requestSocket = new Socket("192.168.1.4", port);
+            requestSocket = new Socket("192.168.2.3", port);
 
             out = new ObjectOutputStream(requestSocket.getOutputStream());
             in = new ObjectInputStream(requestSocket.getInputStream());
